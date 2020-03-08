@@ -9,19 +9,19 @@ import json
 
 def load_data(isTrainMode, dirPath):
     if(isTrainMode):
-        transforms = transforms.Compose([transforms.Resize([224,224]),
+        dataTransforms = transforms.Compose([transforms.Resize([224,224]),
                                         transforms.RandomResizedCrop(224),
                                         transforms.RandomHorizontalFlip(),
                                         transforms.ToTensor(),
                                         transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])])
     else:                                                                
-        transforms = transforms.Compose([transforms.Resize([224,224]),
+        dataTransforms = transforms.Compose([transforms.Resize([224,224]),
                                         transforms.CenterCrop(224),
                                         transforms.ToTensor(),
                                         transforms.Normalize([0.485, 0.456, 0.406],[0.229, 0.224, 0.225])])
 
     # TODO: Load the datasets with ImageFolder
-    imageData = datasets.ImageFolder(dirPath, transform=transforms)
+    imageData = datasets.ImageFolder(dirPath, transform=dataTransforms)
     if(isTrainMode):
         return imageData, torch.utils.data.DataLoader(imageData, batch_size=64, shuffle=True)
     else:
@@ -31,6 +31,7 @@ def load_category(cat_to_name):
     if(cat_to_name != ''):
         with open('cat_to_name.json', 'r') as f:
             cat_to_name = json.load(f)
+    return cat_to_name
     
 def process_image(img):
     ''' Scales, crops, and normalizes a PIL image for a PyTorch model,

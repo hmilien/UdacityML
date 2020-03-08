@@ -11,18 +11,17 @@ import json
 from torchvision import datasets, transforms,models
 from PIL import Image
 import argparse
+import os
 
-
-def train_model():
-    
+def train():
     parser = argparse.ArgumentParser(description='Train netwotk.')
-    parser.add_argument('data_dir',required=True,help='train and test datas directory')
-    parser.add_argument('checkpoint_name',required=False,help='name to save the model, if none provided the model is not saved')
-    parser.add_argument('architecture',required=False, default='densenet121', help='architecture to be used')
-    parser.add_argument('save_dir',required=False, help='name to save the model, if none provided the model is not saved')
-    parser.add_argument('hidden_units',required=False, default=512, type=int, help='hidden units for the model, default is 512')
-    parser.add_argument('learningRate',required=False, default=0.001, type=float, help='Learning rate to train the model.0.001 is default')
-    parser.add_argument('epochs',required=False, default=2, type=int, help='epochs when the model is training')
+    parser.add_argument('data_dir',help='train and test datas directory.')
+    parser.add_argument('checkpoint_name',help='name to save the model, if none provided the model is not saved')
+    parser.add_argument('--architecture', default='densenet121', help='architecture to be used')
+    parser.add_argument('--save_dir', help='name to save the model, if none provided the model is not saved',default='')
+    parser.add_argument('--hidden_units', type=int, help='hidden units for the model, default is 512', default=512)
+    parser.add_argument('--learningRate', type=float, help='Learning rate to train the model.0.001 is default',default=0.001)
+    parser.add_argument('--epochs', type=int, help='epochs when the model is training',default=2)
 
     args = parser.parse_args()
 
@@ -33,6 +32,8 @@ def train_model():
     hidden_units = args.hidden_units
     learningRate = args.learningRate
     epochs = args.epochs
+
+    print('start training. data_dir is: ' + data_dir)
 
     train_dir = data_dir + '/train'
     test_dir = data_dir + '/test'
@@ -52,7 +53,11 @@ def train_model():
     model_utils.train_model(model,trainloader, testloader,criterion,optimizer,device,epochs)
 
     #save the model
+    
     if(save_dir!= ''):
-        model_utils.save_model(model, traindata,optimizer,checkpoint_name)
+        checkpoint_name = os.path.join(save_dir, checkpoint_name)
+    model_utils.save_model(model, traindata,optimizer,checkpoint_name,epochs,architecture)
+
+train()
 
 

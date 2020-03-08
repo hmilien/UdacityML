@@ -8,21 +8,40 @@ from torch import optim
 from torchvision import datasets, transforms,models
 
 
-def save_model(model,train_data,optimizer, checkpoint_name):
+def save_model(model,train_data,optimizer, checkpoint_name,epochs, architecture):
     model.class_to_idx = train_data.class_to_idx
 
     checkpoint = { 'input_size' : 1024,
                 'output_size': 102,
-                'epochs' : 2,
+                'epochs' : epochs,
+                'architecture' : architecture,
                 'optim_state_dict' : optimizer.state_dict(),
+                'class_to_idx':train_data.class_to_idx,
                 'state_dict' : model.state_dict()} 
 
     torch.save(checkpoint,checkpoint_name)
     
-def load_checkpoint(filepath):
-    checkpoint = torch.load(filepath)
-    model = models.densenet161(pretrained=True)
-    model.load_state_dict(checkpoint['state_dict'])
+def load_checkpoint(filepath, gpu):
+    if(gpu):
+        checkpoint = torch.load(filepath)
+    else:
+         checkpoint = torch.load(filepath,map_location='cpu')
+
+    architecture = checkpoint['architecture']
+    if(architecture == 'densenet121'):
+        model = models.densenet121(pretrained=True)
+    else:
+        model = models.densenet169(pretrained=True)
+    model.load_state_dict(checkpoint['state_dict'], strict=False)
+    model.class_to_idx = checkpoint['class_to_idx']
+
+    hidden = checkpoint ['input_size']
+    output = checkpoint['output_size']
+    model.classifier = nn.Sequential(nn.Linear(1024, hidden),
+                                nn.ReLU(),
+                                nn.Dropout(0.2),
+                                nn.Linear(hidden,output),
+                                nn.LogSoftmax(dim=1))
     return model
 
 def create_model(hidden_units, architecture):
